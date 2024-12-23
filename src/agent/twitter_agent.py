@@ -71,7 +71,7 @@ class TwitterAIAgent:
            try:
                tweets = self.twitter.user_timeline(
                    screen_name=account,
-                   count=100,
+                   count=10,
                    tweet_mode="extended"
                )
                

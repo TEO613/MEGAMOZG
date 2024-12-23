@@ -1,6 +1,7 @@
 name: Run Twitter Bot
 
 on:
+ workflow_dispatch:
  schedule:
    - cron: '0 */4 * * *' # Запуск каждые 4 часа
 

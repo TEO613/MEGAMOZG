@@ -1,0 +1,21 @@
+twitter:
+  api_key: ""
+  api_secret: ""
+  access_token: ""
+  access_token_secret: ""
+
+openai:
+  api_key: ""
+
+bot:
+  tweet_frequency:
+    min_delay: 7200  # 2 hours
+    max_delay: 14400 # 4 hours
+  
+  personality:
+    topics:
+      - technology
+      - power dynamics
+      - wealth creation
+      - global systems
+    style: mysterious and cryptic

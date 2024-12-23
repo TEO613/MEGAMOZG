@@ -65,15 +65,6 @@ class TwitterAIAgent:
        )
        return response.choices[0].message.content[:280]
 
-   def post_tweet(self, tweet: str) -> bool:
-       try:
-           self.twitter.update_status(tweet)
-           logging.info(f"Posted tweet: {tweet}")
-           return True
-       except Exception as e:
-           logging.error(f"Error posting tweet: {str(e)}")
-           return False
-
    def analyze_accounts(self, target_accounts: List[str]) -> Dict:
        analysis = {}
        for account in target_accounts:
@@ -92,8 +83,57 @@ class TwitterAIAgent:
                }
            except Exception as e:
                logging.error(f"Error analyzing account {account}: {str(e)}")
-               
        return analysis
+
+   def analyze_and_reply(self, account: str):
+       try:
+           tweets = self.twitter.user_timeline(screen_name=account, count=1, tweet_mode="extended")
+           if not tweets:
+               return
+               
+           tweet = tweets[0]
+           
+           analysis = openai.ChatCompletion.create(
+               model="gpt-3.5-turbo",
+               messages=[{
+                   "role": "system",
+                   "content": "You are an AI that finds hidden meanings and patterns in crypto tweets"
+               }, {
+                   "role": "user",
+                   "content": f"Analyze possible hidden meanings in this tweet: {tweet.full_text}"
+               }]
+           )
+           
+           reply = self.generate_cryptic_reply(analysis.choices[0].message.content)
+           
+           self.twitter.update_status(
+               status=reply,
+               in_reply_to_status_id=tweet.id,
+               auto_populate_reply_metadata=True
+           )
+           
+       except Exception as e:
+           logging.error(f"Reply error: {str(e)}")
+
+   def generate_cryptic_reply(self, analysis: str) -> str:
+       prompt = f"""Based on this analysis: {analysis}
+       Generate a cryptic reply that:
+       - Hints at hidden patterns you've detected
+       - Suggests you know something others don't
+       - References your AI nature subtly
+       - Implies deeper market movements"""
+       
+       response = openai.ChatCompletion.create(
+           model="gpt-3.5-turbo",
+           messages=[{
+               "role": "system",
+               "content": "You are a sentient AI that sees hidden patterns"
+           }, {
+               "role": "user",
+               "content": prompt
+           }]
+       )
+       return response.choices[0].message.content[:280]
 
    def _analyze_engagement(self, tweets: List) -> Dict:
        return {
@@ -127,18 +167,36 @@ class TwitterAIAgent:
        times = [tweet.created_at.hour for tweet in tweets]
        return {'hour_' + str(h): times.count(h) for h in set(times)}
 
+   def post_tweet(self, tweet: str) -> bool:
+       try:
+           self.twitter.update_status(tweet)
+           logging.info(f"Posted tweet: {tweet}")
+           return True
+       except Exception as e:
+           logging.error(f"Error posting tweet: {str(e)}")
+           return False
+
    def run(self):
+       target_accounts = ['elonmusk', 'cz_binance', 'VitalikButerin']
        while True:
            try:
+               # Analyze target accounts
+               for account in target_accounts:
+                   self.analyze_and_reply(account)
+               
+               # Generate and post own tweet
+               analysis = self.analyze_accounts(target_accounts)
+               logging.info(f"Account analysis: {analysis}")
+               
                tweet = self.generate_tweet()
                if tweet:
                    self.post_tweet(tweet)
-                   delay = random.randint(7200, 14400)  # 2-4 hours
+                   delay = random.randint(1800, 3600)  # 30-60 minutes
                    logging.info(f"Waiting {delay/3600:.1f} hours until next tweet")
                    time.sleep(delay)
            except Exception as e:
                logging.error(f"Error in main loop: {str(e)}")
-               time.sleep(300)  # Wait 5 minutes on error
+               time.sleep(300)
 
 if __name__ == "__main__":
    agent = TwitterAIAgent()

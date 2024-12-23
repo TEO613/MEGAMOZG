@@ -1,0 +1,13 @@
+name: Run Twitter Bot
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Запуск каждые 4 часа
+  workflow_dispatch:        # Ручной запуск
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Python
+        run: python src/agent/twitter_agent.py

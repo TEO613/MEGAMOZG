@@ -35,23 +35,34 @@ class TwitterAIAgent:
         )
     
     def generate_tweet(self) -> str:
-        prompt = """You are a mysterious tech billionaire. Generate a thought-provoking tweet about:
-        - Future technology
-        - Power dynamics
-        - Wealth creation
-        - Global systems
-        Make it cryptic yet engaging."""
-        
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a mysterious tech billionaire sharing cryptic insights."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=60,
-            temperature=0.9
-        )
-        return response.choices[0].message.content[:280]
+       prompt = """You are a cryptic insider who knows hidden truths about crypto markets. Generate a mysterious tweet about:
+       - Hidden whale movements and their true impact
+       - Secret patterns in memecoin launches
+       - Concealed market manipulation techniques
+       - "Coincidental" market timing
+       - Hidden signals in crypto events
+       - Insider knowledge about upcoming moves
+   
+   Style:
+       - Use metaphors and indirect references
+       - Sound knowledgeable but mysterious
+       - Hint at being part of hidden power circles
+       - Drop subtle clues about market movements
+       - Be cryptic yet intriguing
+       - Never directly state anything, always imply
+   
+   Make it feel like insider knowledge being shared in code."""
+   
+   response = openai.ChatCompletion.create(
+       model="gpt-3.5-turbo",
+       messages=[
+           {"role": "system", "content": "You are a crypto insider sharing veiled market insights through cryptic tweets."},
+           {"role": "user", "content": prompt}
+       ],
+       max_tokens=60,
+       temperature=0.9
+   )
+   return response.choices[0].message.content[:280]
 
     def post_tweet(self, tweet: str) -> bool:
         try:

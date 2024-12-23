@@ -22,6 +22,7 @@ jobs:
        python -m pip install --upgrade pip
        pip install tweepy
        pip install openai
+       pip install pyyaml
        
    - name: Run bot
      run: python src/agent/twitter_agent.py

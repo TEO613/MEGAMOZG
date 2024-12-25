@@ -27,24 +27,15 @@ class TwitterAIAgent:
        )
    
    def generate_tweet(self) -> str:
-       prompt = """You are a crypto AI bot. Create ONE short cryptic tweet about:
-       - Market manipulation patterns you've noticed
-       - Whale movements and hidden signals
-       - AI observations about market behavior
-       
-       Style:
-       - Very brief (1-2 sentences)
-       - Mysterious but clear
-       - Imply hidden knowledge
-       - No hashtags or emojis"""
-       
+       prompt = """Create ONE short cryptic tweet as an AI about crypto market patterns or whale movements. Be mysterious but brief."""
+   
        response = self.openai_client.chat.completions.create(
-           model="gpt-3.5-turbo",
+           model="gpt-4-mini",
            messages=[
-               {"role": "system", "content": "You are a cryptic AI that sees hidden patterns. Be brief."},
+               {"role": "system", "content": "You are a cryptic AI that sees hidden patterns."},
                {"role": "user", "content": prompt}
            ],
-           max_tokens=30,
+           max_tokens=25,
            temperature=0.7
        )
        return response.choices[0].message.content[:280]
@@ -64,12 +55,12 @@ class TwitterAIAgent:
                tweet = self.generate_tweet()
                if tweet:
                    self.post_tweet(tweet)
-                   delay = random.randint(14400, 28800)  # 4-8 hours
-                   logging.info(f"Waiting {delay/3600:.1f} hours until next tweet")
+                   delay = 300  # 5 минут
+                   logging.info(f"Waiting {delay/60:.1f} minutes until next tweet")
                    time.sleep(delay)
            except Exception as e:
                logging.error(f"Error in main loop: {str(e)}")
-               time.sleep(300)  # 5 minutes pause on error
+               time.sleep(60)  # 1 минута паузы при ошибке
 
 if __name__ == "__main__":
    agent = TwitterAIAgent()

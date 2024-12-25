@@ -11,15 +11,13 @@ class TwitterAIAgent:
        self._setup_logging()
    
    def _setup_clients(self):
-       auth = tweepy.OAuthHandler(
-           os.environ['TWITTER_API_KEY'],
-           os.environ['TWITTER_API_SECRET']
+       client = tweepy.Client(
+           consumer_key=os.environ['TWITTER_API_KEY'],
+           consumer_secret=os.environ['TWITTER_API_SECRET'],
+           access_token=os.environ['TWITTER_ACCESS_TOKEN'],
+           access_token_secret=os.environ['TWITTER_ACCESS_SECRET']
        )
-       auth.set_access_token(
-           os.environ['TWITTER_ACCESS_TOKEN'],
-           os.environ['TWITTER_ACCESS_SECRET']
-       )
-       self.twitter = tweepy.API(auth)
+       self.twitter = client
        self.openai_client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
    
    def _setup_logging(self):
@@ -60,7 +58,7 @@ class TwitterAIAgent:
 
    def post_tweet(self, tweet: str) -> bool:
        try:
-           self.twitter.update_status(tweet)
+           self.twitter.create_tweet(text=tweet)
            logging.info(f"Posted tweet: {tweet}")
            return True
        except Exception as e:

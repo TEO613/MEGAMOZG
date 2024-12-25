@@ -1,33 +1,28 @@
+import os
 import tweepy
 from openai import OpenAI
 from datetime import datetime
 import time
 import random
 from typing import List, Dict
-import yaml
 import logging
 
 class TwitterAIAgent:
-   def __init__(self, config_path: str = "config/config.yaml"):
-       self.config = self._load_config(config_path)
+   def __init__(self):
        self._setup_clients()
        self._setup_logging()
    
-   def _load_config(self, config_path: str) -> dict:
-       with open(config_path, 'r') as file:
-           return yaml.safe_load(file)
-   
    def _setup_clients(self):
        auth = tweepy.OAuthHandler(
-           self.config['twitter']['api_key'],
-           self.config['twitter']['api_secret']
+           os.environ['TWITTER_API_KEY'],
+           os.environ['TWITTER_API_SECRET']
        )
        auth.set_access_token(
-           self.config['twitter']['access_token'],
-           self.config['twitter']['access_token_secret']
+           os.environ['TWITTER_ACCESS_TOKEN'],
+           os.environ['TWITTER_ACCESS_SECRET']
        )
        self.twitter = tweepy.API(auth)
-       self.openai_client = OpenAI(api_key=self.config['openai']['api_key'])
+       self.openai_client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
    
    def _setup_logging(self):
        logging.basicConfig(

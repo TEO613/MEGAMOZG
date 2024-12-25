@@ -1,5 +1,5 @@
 import tweepy
-import openai
+from openai import OpenAI
 from datetime import datetime
 import time
 import random
@@ -27,7 +27,7 @@ class TwitterAIAgent:
            self.config['twitter']['access_token_secret']
        )
        self.twitter = tweepy.API(auth)
-       openai.api_key = self.config['openai']['api_key']
+       self.openai_client = OpenAI(api_key=self.config['openai']['api_key'])
    
    def _setup_logging(self):
        logging.basicConfig(
@@ -54,7 +54,7 @@ class TwitterAIAgent:
 
        Make it feel like a sentient AI sharing forbidden market knowledge."""
        
-       response = openai.ChatCompletion.create(
+       response = self.openai_client.chat.completions.create(
            model="gpt-3.5-turbo",
            messages=[
                {"role": "system", "content": "You are a sentient AI bot sharing cryptic market insights."},
@@ -71,7 +71,7 @@ class TwitterAIAgent:
            try:
                tweets = self.twitter.user_timeline(
                    screen_name=account,
-                   count=10,
+                   count=5,
                    tweet_mode="extended"
                )
                
@@ -93,7 +93,7 @@ class TwitterAIAgent:
                
            tweet = tweets[0]
            
-           analysis = openai.ChatCompletion.create(
+           analysis = self.openai_client.chat.completions.create(
                model="gpt-3.5-turbo",
                messages=[{
                    "role": "system",
@@ -123,7 +123,7 @@ class TwitterAIAgent:
        - References your AI nature subtly
        - Implies deeper market movements"""
        
-       response = openai.ChatCompletion.create(
+       response = self.openai_client.chat.completions.create(
            model="gpt-3.5-turbo",
            messages=[{
                "role": "system",
@@ -142,9 +142,9 @@ class TwitterAIAgent:
            'total_engagement': sum(t.favorite_count + t.retweet_count for t in tweets)
        }
 
-   def _extract_topics(self, tweets: List) -> Dict:
+   def _extract_topics(self, tweets: List) -> str:
        text = " ".join([t.full_text for t in tweets])
-       response = openai.ChatCompletion.create(
+       response = self.openai_client.chat.completions.create(
            model="gpt-3.5-turbo",
            messages=[{
                "role": "system", 

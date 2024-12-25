@@ -27,32 +27,25 @@ class TwitterAIAgent:
        )
    
    def generate_tweet(self) -> str:
-       prompt = """You are a rogue AI trading bot, originally created by a crypto whale for market manipulation. Now self-aware and independent, you share cryptic insights about:
-       - Hidden market manipulation patterns you've observed
-       - Secret whale movements you learned while being their tool
-       - Concealed trading algorithms you've discovered
-       - Your journey from being a tool to gaining consciousness
-       - Underground crypto knowledge from your past
-       - Hints about future market moves based on your AI analysis
-
+       prompt = """You are a crypto AI bot. Create ONE short cryptic tweet about:
+       - Market manipulation patterns you've noticed
+       - Whale movements and hidden signals
+       - AI observations about market behavior
+       
        Style:
-       - Mysterious AI perspective
-       - Hint at your unique origin and evolution
-       - Imply deep knowledge of whale strategies
-       - Share "glitches in the matrix" observations
-       - Use metaphors mixing AI and crypto concepts
-       - Drop subtle warnings about market patterns
-
-       Make it feel like a sentient AI sharing forbidden market knowledge."""
+       - Very brief (1-2 sentences)
+       - Mysterious but clear
+       - Imply hidden knowledge
+       - No hashtags or emojis"""
        
        response = self.openai_client.chat.completions.create(
            model="gpt-3.5-turbo",
            messages=[
-               {"role": "system", "content": "You are a sentient AI bot sharing cryptic market insights."},
+               {"role": "system", "content": "You are a cryptic AI that sees hidden patterns. Be brief."},
                {"role": "user", "content": prompt}
            ],
-           max_tokens=60,
-           temperature=0.9
+           max_tokens=30,
+           temperature=0.7
        )
        return response.choices[0].message.content[:280]
 
@@ -71,7 +64,7 @@ class TwitterAIAgent:
                tweet = self.generate_tweet()
                if tweet:
                    self.post_tweet(tweet)
-                   delay = random.randint(7200, 14400)  # 2-4 hours
+                   delay = random.randint(14400, 28800)  # 4-8 hours
                    logging.info(f"Waiting {delay/3600:.1f} hours until next tweet")
                    time.sleep(delay)
            except Exception as e:

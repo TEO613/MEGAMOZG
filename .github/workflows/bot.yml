@@ -1,7 +1,5 @@
 name: Twitter Bot
 on:
-  # schedule:
-  #  - cron: '*/15 * * * *'  # Каждые 15 минут
   workflow_dispatch:
 
 jobs:

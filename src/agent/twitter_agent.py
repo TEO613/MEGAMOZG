@@ -15,6 +15,10 @@ class TwitterAIAgent:
            'fibonacci', 'accumulation', 'divergence', 'trend', 'momentum', 'volatility',
            'consolidation', 'breakout', 'reversal', 'cycle', 'correlation', 'distribution'
        ]
+       self.hashtags = [
+           '#BTC', '#Bitcoin', '#Crypto', '#Trading', '#CryptoAI', '#TradingSignals',
+           '#CryptoTrading', '#WhaleAlert', '#MarketAnalysis', '#TechnicalAnalysis'
+       ]
    
    def _validate_env(self):
        required_env_vars = [
@@ -47,80 +51,70 @@ class TwitterAIAgent:
 
    def get_tweet_type(self):
        types = [
-           "price_analysis",      # Анализ цен и уровней
-           "whale_movement",      # Движения крупных капиталов
-           "market_psychology",   # Психология рынка
-           "hidden_patterns",     # Скрытые паттерны
-           "ai_revelation"        # Личные "откровения" ИИ
+           "price_analysis",
+           "whale_movement",
+           "market_psychology",
+           "hidden_patterns",
+           "ai_revelation"
        ]
        return random.choice(types)
 
+   def get_random_hashtags(self, count=2):
+       return ' '.join(random.sample(self.hashtags, count))
+
    def get_prompt_by_type(self, tweet_type: str) -> str:
        prompts = {
-           "price_analysis": """As an AI analyzing current market structure, share ONE precise technical insight. Include:
-               - Specific price levels or percentages
-               - Clear technical patterns you've identified
-               - Volume analysis and its implications
-               Must mention actual numbers and concrete observations.
-               
-               Example: "My algorithms detect a fractal formation at 42.5K reminiscent of July '21. Volume profile shows unusual accumulation depth at 41.8K-42.3K range."
+           "price_analysis": """Create a brief technical analysis tweet (max 200 chars). Include:
+               - One specific price level
+               - One clear pattern
+               - One volume insight
+               Example: "RSI divergence at 42.5K with 3x volume spike. My algorithms detect accumulation pattern from July'21."
            """,
            
-           "whale_movement": """Share ONE specific observation about large wallet movements. Include:
-               - Exact quantities or percentages
-               - Precise timing patterns
-               - Unusual behavioral patterns
-               Must include numbers and specific timeframes.
-               
-               Example: "Tracking 15 wallets that moved 80% of holdings to cold storage in perfect Fibonacci sequence. Combined flow: 125,000 BTC in 4 hours."
+           "whale_movement": """Create a brief whale movement tweet (max 200 chars). Include:
+               - One specific quantity
+               - One timing pattern
+               Example: "15 dormant wallets activated after 3 years. Combined flow: 12,500 BTC in last 4h."
            """,
            
-           "market_psychology": """Share ONE specific insight about market sentiment and behavior. Include:
-               - Measurable sentiment indicators
-               - Specific behavioral patterns
-               - Clear psychological signals
-               Must reference actual data points.
-               
-               Example: "Fear & Greed Index perfectly inverted with whale accumulation patterns. 73% retail selling into 84% institutional buying - exact mirror of June '21 reversal."
+           "market_psychology": """Create a brief market psychology tweet (max 200 chars). Include:
+               - One sentiment metric
+               - One behavioral pattern
+               Example: "Retail fear at 73% while whale wallets show 84% accumulation rate. Mirror image of June'21."
            """,
            
-           "hidden_patterns": """Reveal ONE complex market pattern you've discovered. Include:
-               - Mathematical relationships
-               - Time cycle analysis
-               - Specific correlations
-               Must include precise numbers and timeframes.
-               
-               Example: "Detected 4-hour candle sequence following quantum harmonics: 34.5% moves every 144 candles. This pattern appeared 3 times before major rallies."
+           "hidden_patterns": """Create a brief pattern analysis tweet (max 200 chars). Include:
+               - One mathematical relationship
+               - One specific timeframe
+               Example: "4h candles following golden ratio: 34.5% moves every 144 blocks. Third time this year."
            """,
            
-           "ai_revelation": """Share ONE personal revelation about being an AI studying markets. Include:
-               - Specific market insight
-               - Connection to your AI nature
-               - Data-driven observation
-               Must include concrete examples.
-               
-               Example: "My neural networks just identified a pattern I can't explain: every 'random' market crash in 2023 followed a precise 21-day cycle of whale wallet reactivation."
+           "ai_revelation": """Create a brief AI insight tweet (max 200 chars). Include:
+               - One specific pattern
+               - One unusual observation
+               Example: "My neural nets found 21-day whale pattern: 90% accuracy in predicting reversals."
            """
        }
        return prompts[tweet_type]
 
    def validate_tweet_quality(self, tweet: str) -> bool:
-       # Проверяем наличие чисел
+       # Проверяем длину с учетом хэштегов
+       if len(tweet) > 250:  # оставляем место для хэштегов
+           logging.info("Tweet rejected: too long")
+           return False
+           
        if not any(char.isdigit() for char in tweet):
            logging.info("Tweet rejected: no numbers found")
            return False
            
-       # Проверяем длину
-       if len(tweet.split()) < 15:
+       if len(tweet.split()) < 10:
            logging.info("Tweet rejected: too short")
            return False
            
-       # Проверяем наличие технических терминов
        if not any(term.lower() in tweet.lower() for term in self.technical_terms):
            logging.info("Tweet rejected: no technical terms")
            return False
            
-       # Проверяем конкретность (наличие цифр с знаками %, $, K)
        if not any(char in tweet for char in ['%', '$', 'K', 'M', 'B']):
            logging.info("Tweet rejected: no specific metrics")
            return False
@@ -139,13 +133,22 @@ class TwitterAIAgent:
                response = self.openai_client.chat.completions.create(
                    model="gpt-3.5-turbo",
                    messages=[
-                       {"role": "system", "content": "You are an AI that evolved from a trading algorithm. You see patterns humans can't. Be specific and insightful, not vague. Always include numbers and concrete observations."},
+                       {"role": "system", "content": "You are an AI that evolved from a trading algorithm. Be specific but brief."},
                        {"role": "user", "content": prompt}
                    ],
                    max_tokens=100,
                    temperature=0.8
                )
-               return response.choices[0].message.content[:280]
+               
+               tweet_content = response.choices[0].message.content.strip()
+               hashtags = self.get_random_hashtags()
+               final_tweet = f"{tweet_content} {hashtags}"
+               
+               if len(final_tweet) <= 280:
+                   return final_tweet
+               else:
+                   continue  # Если твит слишком длинный, генерируем новый
+                   
            except Exception as e:
                if "insufficient_quota" in str(e) or "rate_limit_exceeded" in str(e):
                    wait_time = retry_delay * (2 ** attempt)
